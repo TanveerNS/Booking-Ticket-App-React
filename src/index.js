@@ -1,18 +1,34 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import "./index.css";
-import App from "./App";
-import reportWebVitals from "./reportWebVitals";
-import "bootstrap/dist/css/bootstrap.min.css";
+import express from "express";
+import cors from "cors";
+import chat from "./controllers/chat";
+require("dotenv").config();
 
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById("root")
-);
+// app
+const app = express();
+const http = require("http").createServer(app);
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// socket io
+const io = require("socket.io")(http, {
+  path: "/socket.io",
+  cors: {
+    origin: [process.env.DOMAIN],
+    methods: ["GET", "POST"],
+    allowedHeaders: ["content-type"],
+  },
+});
+
+// middlewares
+app.use(cors());
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// rest api
+app.get("/api", (req, res) => {
+  res.send("THIS IS REST API!");
+});
+
+// socket
+chat(io);
+
+const port = process.env.PORT || 8000;
+http.listen(port, () => console.log(`Server running on port ${port}`));
